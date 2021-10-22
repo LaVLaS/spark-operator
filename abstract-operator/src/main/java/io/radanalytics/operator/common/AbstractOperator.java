@@ -2,8 +2,7 @@ package io.radanalytics.operator.common;
 
 import io.fabric8.kubernetes.api.model.ConfigMap;
 import io.fabric8.kubernetes.api.model.ConfigMapList;
-import io.fabric8.kubernetes.api.model.DoneableConfigMap;
-import io.fabric8.kubernetes.api.model.apiextensions.CustomResourceDefinition;
+import io.fabric8.kubernetes.api.model.apiextensions.v1.CustomResourceDefinition;
 import io.fabric8.kubernetes.client.*;
 import io.fabric8.kubernetes.client.dsl.FilterWatchListMultiDeletable;
 import io.fabric8.kubernetes.client.dsl.MixedOperation;
@@ -11,7 +10,6 @@ import io.fabric8.kubernetes.client.dsl.Resource;
 import io.radanalytics.operator.common.crd.CrdDeployer;
 import io.radanalytics.operator.common.crd.InfoClass;
 import io.radanalytics.operator.common.crd.InfoStatus;
-import io.radanalytics.operator.common.crd.InfoClassDoneable;
 import io.radanalytics.operator.common.crd.InfoList;
 import io.radanalytics.operator.resource.LabelsHelper;
 import org.slf4j.Logger;
@@ -363,8 +361,8 @@ public abstract class AbstractOperator<T extends EntityInfo> {
     protected Set<T> getDesiredSet() {
         Set<T> desiredSet;
         if (isCrd) {
-            MixedOperation<InfoClass, InfoList, InfoClassDoneable, Resource<InfoClass, InfoClassDoneable>> aux1 =
-                    client.customResources(crd, InfoClass.class, InfoList.class, InfoClassDoneable.class);
+            MixedOperation<InfoClass, InfoList, Resource<InfoClass>> aux1 =
+                    client.customResources(crd, InfoClass.class, InfoList.class);
             FilterWatchListMultiDeletable<InfoClass, InfoList, Boolean, Watch, Watcher<InfoClass>> aux2 =
                     "*".equals(namespace) ? aux1.inAnyNamespace() : aux1.inNamespace(namespace);
             CustomResourceList<InfoClass> listAux = aux2.list();
@@ -378,7 +376,7 @@ public abstract class AbstractOperator<T extends EntityInfo> {
                 }
             }).collect(Collectors.toSet());
         } else {
-            MixedOperation<ConfigMap, ConfigMapList, DoneableConfigMap, Resource<ConfigMap, DoneableConfigMap>> aux1 =
+            MixedOperation<ConfigMap, ConfigMapList, Resource<ConfigMap>> aux1 =
                     client.configMaps();
             FilterWatchListMultiDeletable<ConfigMap, ConfigMapList, Boolean, Watch, Watcher<ConfigMap>> aux2 =
                     "*".equals(namespace) ? aux1.inAnyNamespace() : aux1.inNamespace(namespace);
@@ -409,8 +407,8 @@ public abstract class AbstractOperator<T extends EntityInfo> {
      **/
     protected void setCRStatus(String status, String namespace, String name) {
         if (isCrd) {
-            MixedOperation<InfoClass, InfoList, InfoClassDoneable, Resource<InfoClass, InfoClassDoneable>> crclient =
-                    client.customResources(crd, InfoClass.class, InfoList.class, InfoClassDoneable.class);
+            MixedOperation<InfoClass, InfoList, Resource<InfoClass>> crclient =
+                    client.customResources(crd, InfoClass.class, InfoList.class);
 
             InfoClass cr = crclient.inNamespace(namespace).withName(name).get();
             if (cr != null) {

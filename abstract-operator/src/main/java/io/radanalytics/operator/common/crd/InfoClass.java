@@ -2,6 +2,7 @@ package io.radanalytics.operator.common.crd;
 
 import io.fabric8.kubernetes.client.CustomResource;
 
+//TODO: I think this class is no longer necessary in fabric8 5.x
 public class InfoClass<U> extends CustomResource {
     private U spec;
     private InfoStatus status;
@@ -16,13 +17,5 @@ public class InfoClass<U> extends CustomResource {
 
     public void setStatus(InfoStatus status) {
         this.status = status;
-    }
-
-    public U getSpec() {
-        return spec;
-    }
-
-    public void setSpec(U spec) {
-        this.spec = spec;
     }
 }

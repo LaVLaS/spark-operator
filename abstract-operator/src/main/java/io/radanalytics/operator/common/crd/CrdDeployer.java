@@ -1,11 +1,11 @@
 package io.radanalytics.operator.common.crd;
 
 import com.fasterxml.jackson.databind.DeserializationFeature;
-import io.fabric8.kubernetes.api.model.apiextensions.CustomResourceDefinition;
-import io.fabric8.kubernetes.api.model.apiextensions.CustomResourceDefinitionBuilder;
-import io.fabric8.kubernetes.api.model.apiextensions.CustomResourceDefinitionFluent;
-import io.fabric8.kubernetes.api.model.apiextensions.CustomResourceSubresourceStatus;
-import io.fabric8.kubernetes.api.model.apiextensions.JSONSchemaProps;
+import io.fabric8.kubernetes.api.model.apiextensions.v1.CustomResourceDefinition;
+import io.fabric8.kubernetes.api.model.apiextensions.v1.CustomResourceDefinitionBuilder;
+import io.fabric8.kubernetes.api.model.apiextensions.v1.CustomResourceDefinitionFluent;
+import io.fabric8.kubernetes.api.model.apiextensions.v1.CustomResourceSubresourceStatus;
+import io.fabric8.kubernetes.api.model.apiextensions.v1.JSONSchemaProps;
 import io.fabric8.kubernetes.client.CustomResourceList;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.KubernetesClientException;
@@ -134,7 +134,7 @@ public class CrdDeployer {
                                          .toArray(String[]::new);
 
         return new CustomResourceDefinitionBuilder()
-                .withApiVersion("apiextensions.k8s.io/v1beta1")
+                .withApiVersion("apiextensions.k8s.io/v1")
                 .withNewMetadata().withName(plural + "." + prefix)
                 .endMetadata()
                 .withNewSpec()

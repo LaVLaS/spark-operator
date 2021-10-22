@@ -2,8 +2,7 @@ package io.radanalytics.operator.common;
 
 import io.fabric8.kubernetes.api.model.ConfigMap;
 import io.fabric8.kubernetes.api.model.ConfigMapList;
-import io.fabric8.kubernetes.api.model.DoneableConfigMap;
-import io.fabric8.kubernetes.api.model.apiextensions.CustomResourceDefinition;
+import io.fabric8.kubernetes.api.model.apiextensions.v1.CustomResourceDefinition;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.KubernetesClientException;
 import io.fabric8.kubernetes.client.Watch;
@@ -13,7 +12,6 @@ import io.fabric8.kubernetes.client.dsl.Resource;
 import io.fabric8.kubernetes.client.dsl.Watchable;
 import io.radanalytics.operator.SDKEntrypoint;
 import io.radanalytics.operator.common.crd.InfoClass;
-import io.radanalytics.operator.common.crd.InfoClassDoneable;
 import io.radanalytics.operator.common.crd.InfoList;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -71,10 +69,10 @@ public abstract class AbstractWatcher<T extends EntityInfo> {
 
     protected CompletableFuture<Watch> createConfigMapWatch() {
         CompletableFuture<Watch> cf = CompletableFuture.supplyAsync(() -> {
-            MixedOperation<ConfigMap, ConfigMapList, DoneableConfigMap, Resource<ConfigMap, DoneableConfigMap>> aux = client.configMaps();
+            MixedOperation<ConfigMap, ConfigMapList, Resource<ConfigMap>> aux = client.configMaps();
 
             final boolean inAllNs = "*".equals(namespace);
-            Watchable<Watch, Watcher<ConfigMap>> watchable = inAllNs ? aux.inAnyNamespace().withLabels(selector) :
+            Watchable<Watcher<ConfigMap>> watchable = inAllNs ? aux.inAnyNamespace().withLabels(selector) :
                     aux.inNamespace(namespace).withLabels(selector);
             Watch watch = watchable.watch(new Watcher<ConfigMap>() {
                 @Override
@@ -119,11 +117,11 @@ public abstract class AbstractWatcher<T extends EntityInfo> {
 
     protected CompletableFuture<Watch> createCustomResourceWatch() {
         CompletableFuture<Watch> cf = CompletableFuture.supplyAsync(() -> {
-            MixedOperation<InfoClass, InfoList, InfoClassDoneable, Resource<InfoClass, InfoClassDoneable>> aux =
-                    client.customResources(crd, InfoClass.class, InfoList.class, InfoClassDoneable.class);
+            MixedOperation<InfoClass, InfoList, Resource<InfoClass>> aux =
+                    client.customResources(crd, InfoClass.class, InfoList.class);
 
             final boolean inAllNs = "*".equals(namespace);
-            Watchable<Watch, Watcher<InfoClass>> watchable = inAllNs ? aux.inAnyNamespace() : aux.inNamespace(namespace);
+            Watchable<Watcher<InfoClass>> watchable = inAllNs ? aux.inAnyNamespace() : aux.inNamespace(namespace);
             Watch watch = watchable.watch(new Watcher<InfoClass>() {
                 @Override
                 public void eventReceived(Action action, InfoClass info) {
