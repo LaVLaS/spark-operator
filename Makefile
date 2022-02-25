@@ -1,4 +1,5 @@
 IMAGE?=radanalyticsio/spark-operator
+IMAGE_BUILDER=docker
 
 .PHONY: build
 build: package image-build
@@ -26,34 +27,34 @@ test:
 
 .PHONY: image-build
 image-build:
-	docker build -t $(IMAGE):ubi -f Dockerfile.ubi .
-	docker tag $(IMAGE):ubi $(IMAGE):latest
+	${IMAGE_BUILDER} build -t $(IMAGE):ubi -f Dockerfile.ubi .
+	${IMAGE_BUILDER} tag $(IMAGE):ubi $(IMAGE):latest
 
 .PHONY: image-build-alpine
 image-build-alpine:
-	docker build -t $(IMAGE):alpine -f Dockerfile.alpine .
+	${IMAGE_BUILDER} build -t $(IMAGE):alpine -f Dockerfile.alpine .
 
 .PHONY: image-build-all
 image-build-all: image-build image-build-alpine
 
 .PHONY: image-publish-alpine
 image-publish-alpine: image-build-alpine
-	docker tag $(IMAGE):alpine $(IMAGE):alpine-`git rev-parse --short=8 HEAD`
-	docker tag $(IMAGE):alpine $(IMAGE):latest-alpine
-	docker push $(IMAGE):latest-alpine
+	${IMAGE_BUILDER} tag $(IMAGE):alpine $(IMAGE):alpine-`git rev-parse --short=8 HEAD`
+	${IMAGE_BUILDER} tag $(IMAGE):alpine $(IMAGE):latest-alpine
+	${IMAGE_BUILDER} push $(IMAGE):latest-alpine
 
 .PHONY: image-publish
 image-publish: image-build
-	docker tag $(IMAGE):ubi $(IMAGE):`git rev-parse --short=8 HEAD`-ubi
-	docker tag $(IMAGE):ubi $(IMAGE):latest-ubi
-	docker push $(IMAGE):latest
+	${IMAGE_BUILDER} tag $(IMAGE):ubi $(IMAGE):`git rev-parse --short=8 HEAD`-ubi
+	${IMAGE_BUILDER} tag $(IMAGE):ubi $(IMAGE):latest-ubi
+	${IMAGE_BUILDER} push $(IMAGE):latest
 
 .PHONY: image-publish-all
 image-publish-all: build-travis image-build-all image-publish image-publish-alpine
 
 .PHONY: devel
 devel: build
-	-docker kill `docker ps -q` || true
+	-${IMAGE_BUILDER} kill `${IMAGE_BUILDER} ps -q` || true
 	oc cluster up ; oc login -u system:admin ; oc project default
 	sed 's;quay.io/radanalyticsio/spark-operator:latest-released;radanalyticsio/spark-operator:latest;g' manifest/operator.yaml > manifest/operator-devel.yaml && oc create -f manifest/operator-devel.yaml ; rm manifest/operator-devel.yaml || true
 	until [ "true" = "`oc get pod -l app.kubernetes.io/name=spark-operator -o json 2> /dev/null | grep \"\\\"ready\\\": \" | sed -e 's;.*\(true\|false\),;\1;'`" ]; do printf "."; sleep 1; done
@@ -70,7 +71,7 @@ devel-kubernetes:
 
 .PHONY: local-travis-tests
 local-travis-tests: build
-	-docker kill `docker ps -q` || true
+	-${IMAGE_BUILDER} kill `${IMAGE_BUILDER} ps -q` || true
 	sed 's;quay.io/radanalyticsio/spark-operator:latest-released;radanalyticsio/spark-operator:latest;g' manifest/operator.yaml > manifest/operator-test.yaml
 	-BIN=oc CRD=0 MANIFEST_SUFIX="-test" .travis/.travis.test-oc-and-k8s.sh || true
 	-BIN=oc CRD=0 MANIFEST_SUFIX="-test" .travis/.travis.test-restarts.sh || true
