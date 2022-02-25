@@ -1,8 +1,8 @@
-FROM quay.io/radanalyticsio/ubi-jre-1.8.0-minimal:1.0
+FROM registry.access.redhat.com/ubi8/openjdk-11:1.11
 
 ENV JAVA_OPTS="-XX:+UnlockExperimentalVMOptions -XX:+UseCGroupMemoryLimitForHeap -XX:MaxRAMFraction=2 -XshowSettings:vm"
 
-LABEL BASE_IMAGE_2="quay.io/radanalyticsio/ubi-jre-1.8.0-minimal:1.0"
+LABEL BASE_IMAGE_2="registry.access.redhat.com/ubi8/openjdk-11:1.11"
 
 ADD spark-operator/target/spark-operator-*.jar /spark-operator.jar
 
